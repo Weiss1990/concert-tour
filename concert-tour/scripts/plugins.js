@@ -3,7 +3,8 @@ $(document).ready(function () {
     var logoToggler = $('.responsive-logo-toggler');
     var navigation = $('nav');
     var slider = $('.slider');
-    var categorySlider1 = $('#electro');
+    var categorySlider = $('.category-items-slider-container');
+
 
     logoToggler.click(function() {
         navigation.toggleClass('responsive-show');
@@ -42,10 +43,9 @@ $(document).ready(function () {
 
         ]
     });
-    categorySlider1.categorySlider({
-        id: 0,
-        
-    })
+    categorySlider.each(function(i, item) {
+        $(item).categorySlider();
+    });
 });
 
 //slider startpage
@@ -100,8 +100,6 @@ $(document).ready(function () {
             var data = sliderData[id];
 
             var sliderToggler = slideNavigationContainer.find('.slider-navigator[data-id="' + id + '"]');
-            sliderToggler.addClass("active");
-            sliderToggler.siblings().removeClass("active");
 
             sliderInfo.animate({'opacity': 0}, 1000, function() {
                 slideImage.animate({'opacity': 0}, 1000, function() {
@@ -113,19 +111,63 @@ $(document).ready(function () {
                     slideImage.animate({'opacity': 1}, 1000, function() {
                         sliderInfo.animate({'opacity': 1}, 1000);
                         count++;
+
+                        sliderToggler.addClass("active");
+                        sliderToggler.siblings().removeClass("active");
                     });
                 });
             });
         }
-    }
+    };
 
 })(jQuery);
 
 //category startpage toggler
 (function ($) {
 
-    jQuery.fn.categorySlider = function(options) {
-        console.log(options);
+    jQuery.fn.categorySlider = function() {
+
+        var scretch = $(this).find('.scretch');
+        var item = $(this).find('.category-item:first').get(0);
+        var dispositionValue = getDisposition();
+        var arrowLeft = $(this).find('.arrow.left');
+        var arrowRight = $(this).find('.arrow.right');
+        var left = 0;
+
+        arrowLeft.click(function() {
+            moveScratch('left');
+        });
+
+        arrowRight.click(function() {
+            moveScratch('right');
+        });
+
+        function getDisposition() {
+
+            var style =window.getComputedStyle(item);
+            var width = item.offsetWidth; // or use style.width
+            var margin = parseFloat(style.marginRight) + parseFloat(style.marginLeft);
+            return (width + margin) + 0.5;
+        }
+
+        function moveScratch(direction) {
+
+            switch (direction) {
+                case 'left':
+                    left+= dispositionValue;
+                    break;
+                case 'right':
+                    left-= dispositionValue;
+            }
+
+            scretch.animate({
+                'left': left
+            }, 500);
+        }
+
+        $(window).resize(function() {
+            dispositionValue = getDisposition();
+        });
     };
 
 })(jQuery);
