@@ -4,7 +4,7 @@ $(document).ready(function () {
     var navigation = $('nav');
     var slider = $('.slider');
     var categorySlider = $('.category-items-slider-container');
-
+    var orderForm = $('#order');
 
     logoToggler.click(function() {
         navigation.toggleClass('responsive-show');
@@ -46,6 +46,8 @@ $(document).ready(function () {
     categorySlider.each(function(i, item) {
         $(item).categorySlider();
     });
+
+    orderForm.handleStickyElement();
 });
 
 //slider startpage
@@ -60,7 +62,7 @@ $(document).ready(function () {
         var slideTitle = sliderInfo.find('h3');
         var slideDescription = sliderInfo.find('p');
         var slideLinkTo = sliderInfo.find('a');
-        var count = 0;
+        var count = 1;
         var interval;
 
         for (var i = 0; i < sliderData.length; i++) {
@@ -70,7 +72,9 @@ $(document).ready(function () {
             slideNavigationContainer.append(slideNavigator);
         }
 
-        toggleSlide(sliderData[0].id);
+        slideNavigationContainer.find('.slider-navigator:first').addClass('active');
+
+        // toggleSlide(sliderData[0].id);
         initSliderAutoToggling();
 
         function initSliderAutoToggling() {
@@ -128,11 +132,18 @@ $(document).ready(function () {
     jQuery.fn.categorySlider = function() {
 
         var scretch = $(this).find('.scretch');
-        var item = $(this).find('.category-item:first').get(0);
+        var categorySliderWrapper = $(this).find('.category-items-slider-wrapper').get(0);
+        var items = $(this).find('.category-item');
+        var item = items[0];
         var dispositionValue = getDisposition();
         var arrowLeft = $(this).find('.arrow.left');
         var arrowRight = $(this).find('.arrow.right');
         var left = 0;
+        var counter = 0;
+        var countOfElementsInViewBox = computeItemsCount();
+        var countNextLevel = 0;
+
+        console.log(countOfElementsInViewBox);
 
         arrowLeft.click(function() {
             moveScratch('left');
@@ -144,7 +155,7 @@ $(document).ready(function () {
 
         function getDisposition() {
 
-            var style =window.getComputedStyle(item);
+            var style = window.getComputedStyle(item);
             var width = item.offsetWidth; // or use style.width
             var margin = parseFloat(style.marginRight) + parseFloat(style.marginLeft);
             return (width + margin) + 0.5;
@@ -154,20 +165,93 @@ $(document).ready(function () {
 
             switch (direction) {
                 case 'left':
+                    counter++;
                     left+= dispositionValue;
                     break;
                 case 'right':
+                    counter--;
                     left-= dispositionValue;
+                    break;
             }
+
+            makeEndlessSliding();
 
             scretch.animate({
                 'left': left
             }, 500);
         }
 
+        function makeEndlessSliding() {
+            var numberOfToggledSlide = counter !== 0 ? counter * (-1) : 0;
+
+            if (numberOfToggledSlide + countOfElementsInViewBox > items.length) {
+
+                if (countNextLevel < countOfElementsInViewBox) {
+
+                    var newItem = items.eq(0).clone();
+
+                    items.eq(0).remove();
+                    newItem.insertAfter(items.eq(items.length - 1));
+                }
+
+                console.log(items.eq(0).find('h4').text());
+
+                countNextLevel++;
+                console.log(countNextLevel, countOfElementsInViewBox);
+            }
+
+            console.log(numberOfToggledSlide);
+        }
+
+        function computeItemsCount() {
+            var wrapperWidth = categorySliderWrapper.offsetWidth;
+            return Math.round(wrapperWidth / dispositionValue);
+        }
+
         $(window).resize(function() {
             dispositionValue = getDisposition();
+            left = dispositionValue * counter;
+            scretch.css({
+                'left': left + 'px'
+            });
+
+            countOfElementsInViewBox = computeItemsCount();
         });
     };
 
+})(jQuery);
+
+(function ($) {
+    jQuery.fn.handleStickyElement = function() {
+
+        var stickyElement = $(this);
+        var stickyHeader = stickyElement.find('.order-header');
+
+        var stickyBeginPosition = stickyElement.offset().top + 20;
+
+        $(document).ready(function() {
+            addSticky();
+        });
+
+        $(window).scroll(function() {
+
+            addSticky();
+        });
+
+        stickyHeader.click(function() {
+           toggleStickyFormMobileVisibility();
+        });
+
+        function toggleStickyFormMobileVisibility() {
+            stickyElement.toggleClass('show');
+        }
+
+        function addSticky() {
+            if ($(window).scrollTop() > stickyBeginPosition) {
+                stickyElement.addClass('sticky');
+            } else {
+                stickyElement.removeClass('sticky');
+            }
+        }
+    };
 })(jQuery);
